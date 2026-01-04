@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4F46E5">
+  <meta name="description" content="个人知识管理应用">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="我的知识库">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E📚%3C/text%3E%3C/svg%3E">
+  <title>我的知识库</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(135deg, #EFF6FF 0%, #E0E7FF 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .install-banner {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #4F46E5;
+      color: white;
+      padding: 16px 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      animation: slideUp 0.3s ease;
+    }
+
+    .install-banner.show {
+      display: flex;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateX(-50%) translateY(100px); opacity: 0; }
+      to { transform: translateX(-50%) translateY(0); opacity: 1; }
+    }
+
+    .install-btn {
+      background: white;
+      color: #4F46E5;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .close-banner {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 0 8px;
+    }
+
+    .header {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      padding: 30px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: 32px;
+      color: #1F2937;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .subtitle {
+      color: #6B7280;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .search-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .input-group {
+      position: relative;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid #E5E7EB;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #4F46E5;
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: #4F46E5;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #4338CA;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    .btn-success {
+      background: #10B981;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    .btn-success:disabled {
+      background: #D1D5DB;
+      cursor: not-allowed;
+    }
+
+    .form-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      padding: 30px;
+      margin-bottom: 24px;
+    }
+
+    .form-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: #6B7280;
+      cursor: pointer;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .close-btn:hover {
+      color: #1F2937;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid #E5E7EB;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #4F46E5;
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .record-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 24px;
+      margin-bottom: 16px;
+      transition: all 0.3s;
+    }
+
+    .record-card:hover {
+      box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+      transform: translateY(-2px);
+    }
+
+    .record-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .record-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1F2937;
+      margin-bottom: 8px;
+    }
+
+    .record-meta {
+      display: flex;
+      gap: 12px;
+      font-size: 14px;
+      color: #6B7280;
+      flex-wrap: wrap;
+    }
+
+    .category-tag {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .cat-math { background: #DBEAFE; color: #1E40AF; }
+    .cat-language { background: #D1FAE5; color: #065F46; }
+    .cat-cooking { background: #FED7AA; color: #9A3412; }
+    .cat-tech { background: #E9D5FF; color: #6B21A8; }
+    .cat-other { background: #F3F4F6; color: #374151; }
+
+    .record-content {
+      color: #374151;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      margin-bottom: 12px;
+    }
+
+    .record-files {
+      background: #F9FAFB;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #6B7280;
+    }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      color: #EF4444;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 6px;
+      transition: all 0.3s;
+    }
+
+    .delete-btn:hover {
+      background: #FEE2E2;
+      color: #DC2626;
+    }
+
+    .empty-state {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 48px;
+      text-align: center;
+      color: #6B7280;
+    }
+
+    .stats {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 16px;
+      text-align: center;
+      color: #6B7280;
+      margin-top: 24px;
+    }
+
+    .stats strong {
+      color: #4F46E5;
+      font-size: 18px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+      
+      .search-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .install-banner {
+        left: 10px;
+        right: 10px;
+        transform: none;
+        width: calc(100% - 20px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- PWA安装提示 -->
+  <div class="install-banner" id="installBanner">
+    <span>📱 安装到桌面，随时使用！</span>
+    <button class="install-btn" id="installButton">立即安装</button>
+    <button class="close-banner" id="closeBanner">×</button>
+  </div>
+
+  <div class="container">
+    <!-- 头部 -->
+    <div class="header">
+      <h1>📚 我的知识库</h1>
+      <p class="subtitle">✨ PWA应用 - 可安装到桌面使用</p>
+      
+      <div class="search-grid">
+        <input type="text" id="searchInput" placeholder="🔍 搜索标题或内容...">
+        <select id="categoryFilter">
+          <option value="all">所有分类</option>
+          <option value="math">数学</option>
+          <option value="language">语言学习</option>
+          <option value="cooking">烹饪</option>
+          <option value="tech">技术</option>
+          <option value="other">其他</option>
+        </select>
+        <input type="date" id="dateFilter">
+      </div>
+
+      <button class="btn btn-primary" onclick="toggleForm()">
+        ➕ 添加新记录
+      </button>
+    </div>
+
+    <!-- 添加表单 -->
+    <div id="formCard" class="form-card hidden">
+      <div class="form-header">
+        <h2>新建记录</h2>
+        <button class="close-btn" onclick="toggleForm()">×</button>
+      </div>
+
+      <div class="form-group">
+        <label>标题</label>
+        <input type="text" id="titleInput" placeholder="例如：勾股定理">
+      </div>
+
+      <div class="form-group">
+        <label>内容</label>
+        <textarea id="contentInput" placeholder="写下你的想法和收获..."></textarea>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label>分类</label>
+          <select id="categoryInput">
+            <option value="math">数学</option>
+            <option value="language">语言学习</option>
+            <option value="cooking">烹饪</option>
+            <option value="tech">技术</option>
+            <option value="other">其他</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>日期</label>
+          <input type="date" id="dateInput">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>附件（模拟）</label>
+        <input type="file" id="fileInput" multiple>
+        <div id="fileList" style="margin-top: 8px; font-size: 14px; color: #6B7280;"></div>
+      </div>
+
+      <button class="btn btn-success" onclick="addRecord()" id="saveBtn">
+        💾 保存记录
+      </button>
+    </div>
+
+    <!-- 记录列表 -->
+    <div id="recordsList"></div>
+
+    <!-- 统计信息 -->
+    <div class="stats" id="stats"></div>
+  </div>
+
+  <script>
+    // 分类配置
+    const categories = {
+      math: { name: '数学', class: 'cat-math' },
+      language: { name: '语言学习', class: 'cat-language' },
+      cooking: { name: '烹饪', class: 'cat-cooking' },
+      tech: { name: '技术', class: 'cat-tech' },
+      other: { name: '其他', class: 'cat-other' }
+    };
+
+    // 初始化
+    let records = [];
+    let selectedFiles = [];
+    let deferredPrompt;
+
+    // PWA安装功能
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installBanner').classList.add('show');
+    });
+
+    document.getElementById('installButton').addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          document.getElementById('installBanner').classList.remove('show');
+        }
+        deferredPrompt = null;
+      }
+    });
+
+    document.getElementById('closeBanner').addEventListener('click', () => {
+      document.getElementById('installBanner').classList.remove('show');
+    });
+
+    // 注册Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(() => console.log('✅ Service Worker 注册成功'))
+        .catch((err) => console.log('Service Worker 注册失败:', err));
+    }
+
+    // 加载数据
+    function loadRecords() {
+      const saved = localStorage.getItem('knowledge-records');
+      if (saved) {
+        records = JSON.parse(saved);
+      }
+      renderRecords();
+    }
+
+    // 保存数据
+    function saveRecords() {
+      localStorage.setItem('knowledge-records', JSON.stringify(records));
+    }
+
+    // 切换表单显示
+    function toggleForm() {
+      const form = document.getElementById('formCard');
+      form.classList.toggle('hidden');
+      if (!form.classList.contains('hidden')) {
+        document.getElementById('titleInput').focus();
+      }
+    }
+
+    // 添加记录
+    function addRecord() {
+      const title = document.getElementById('titleInput').value.trim();
+      const content = document.getElementById('contentInput').value.trim();
+      const category = document.getElementById('categoryInput').value;
+      const date = document.getElementById('dateInput').value;
+
+      if (!title || !content) {
+        alert('请填写标题和内容！');
+        return;
+      }
+
+      const record = {
+        id: Date.now().toString(),
+        title: title,
+        content: content,
+        category: category,
+        date: date,
+        files: selectedFiles,
+        createdAt: new Date().toISOString()
+      };
+
+      records.unshift(record);
+      saveRecords();
+      clearForm();
+      toggleForm();
+      renderRecords();
+    }
+
+    // 清空表单
+    function clearForm() {
+      document.getElementById('titleInput').value = '';
+      document.getElementById('contentInput').value = '';
+      document.getElementById('categoryInput').value = 'math';
+      document.getElementById('dateInput').value = new Date().toISOString().split('T')[0];
+      document.getElementById('fileInput').value = '';
+      document.getElementById('fileList').textContent = '';
+      selectedFiles = [];
+    }
+
+    // 删除记录
+    function deleteRecord(id) {
+      if (confirm('确定要删除这条记录吗？')) {
+        records = records.filter(r => r.id !== id);
+        saveRecords();
+        renderRecords();
+      }
+    }
+
+    // 渲染记录列表
+    function renderRecords() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      const categoryFilter = document.getElementById('categoryFilter').value;
+      const dateFilter = document.getElementById('dateFilter').value;
+
+      let filtered = records.filter(record => {
+        const matchSearch = record.title.toLowerCase().includes(searchTerm) ||
+                          record.content.toLowerCase().includes(searchTerm);
+        const matchCategory = categoryFilter === 'all' || record.category === categoryFilter;
+        const matchDate = !dateFilter || record.date === dateFilter;
+        return matchSearch && matchCategory && matchDate;
+      });
+
+      const container = document.getElementById('recordsList');
+      
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            ${records.length === 0 ? '还没有记录，开始添加吧！' : '没有找到匹配的记录'}
+          </div>
+        `;
+      } else {
+        container.innerHTML = filtered.map(record => {
+          const cat = categories[record.category];
+          return `
+            <div class="record-card">
+              <div class="record-header">
+                <div style="flex: 1;">
+                  <div class="record-title">${escapeHtml(record.title)}</div>
+                  <div class="record-meta">
+                    <span class="category-tag ${cat.class}">${cat.name}</span>
+                    <span>📅 ${record.date}</span>
+                  </div>
+                </div>
+                <button class="delete-btn" onclick="deleteRecord('${record.id}')">🗑️</button>
+              </div>
+              <div class="record-content">${escapeHtml(record.content)}</div>
+              ${record.files && record.files.length > 0 ? `
+                <div class="record-files">
+                  <strong>📎 附件:</strong> ${record.files.join(', ')}
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join('');
+      }
+
+      // 更新统计
+      const stats = document.getElementById('stats');
+      let statsText = `共有 <strong>${records.length}</strong> 条记录`;
+      if (categoryFilter !== 'all') {
+        statsText += ` | 当前分类: ${categories[categoryFilter].name}`;
+      }
+      if (searchTerm) {
+        statsText += ` | 搜索结果: ${filtered.length} 条`;
+      }
+      stats.innerHTML = statsText;
+    }
+
+    // 转义HTML
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // 文件选择
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+      selectedFiles = Array.from(e.target.files).map(f => f.name);
+      document.getElementById('fileList').textContent = 
+        selectedFiles.length > 0 ? '已选择: ' + selectedFiles.join(', ') : '';
+    });
+
+    // 搜索和过滤监听
+    document.getElementById('searchInput').addEventListener('input', renderRecords);
+    document.getElementById('categoryFilter').addEventListener('change', renderRecords);
+    document.getElementById('dateFilter').addEventListener('change', renderRecords);
+
+    // 表单验证
+    document.getElementById('titleInput').addEventListener('input', updateSaveBtn);
+    document.getElementById('contentInput').addEventListener('input', updateSaveBtn);
+
+    function updateSaveBtn() {
+      const title = document.getElementById('titleInput').value.trim();
+      const content = document.getElementById('contentInput').value.trim();
+      document.getElementById('saveBtn').disabled = !title || !content;
+    }
+
+    // 初始化日期
+    document.getElementById('dateInput').value = new Date().toISOString().split('T')[0];
+
+    // 页面加载时初始化
+    window.addEventListener('load', function() {
+      loadRecords();
+      console.log('✅ PWA应用已加载！');
+    });
+  </script>
+</body>
+</html>
